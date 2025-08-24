@@ -12,7 +12,7 @@ AI 기반 이력서 분석 및 맞춤형 학습 경로 생성 서비스
 - **API 메트릭스**: 상세한 API 사용 통계 및 성능 모니터링
 
 ## 아키텍처
-<img width="820" height="400" alt="image" src="https://github.com/user-attachments/assets/d54ffd91-0495-4f1e-a4fc-1114afee95fa" />
+<img width="820" height="400" alt="image" src="https://github.com/Kiminni/JobKorea-AI-Challenge/blob/main/image.png" />
 
 ### 비동기 처리 흐름
 
