@@ -2,7 +2,7 @@
 
 AI 기반 이력서 분석 및 맞춤형 학습 경로 생성 서비스
 
-## 🚀 주요 기능
+## 주요 기능
 
 - **이력서 분석**: AI를 활용한 이력서 텍스트 분석 및 구조화
 - **면접 질문 생성**: 맞춤형 기술 면접 질문 5개 생성 (초급/중급/고급)
@@ -11,17 +11,17 @@ AI 기반 이력서 분석 및 맞춤형 학습 경로 생성 서비스
 - **실시간 모니터링**: 작업 진행 상황 실시간 추적
 - **API 메트릭스**: 상세한 API 사용 통계 및 성능 모니터링
 
-## 🏗️ 아키텍처
+## 아키텍처
+<img width="820" height="400" alt="image" src="https://github.com/user-attachments/assets/d54ffd91-0495-4f1e-a4fc-1114afee95fa" />
 
-
-### 🔄 비동기 처리 흐름
+### 비동기 처리 흐름
 
 1. **FastAPI** → **Redis Message Queue** (작업 요청)
 2. **Celery Worker** → **Redis Message Queue** (작업 가져오기)
 3. **Worker 처리 완료** → **Redis Result Backend** (결과 저장)
 4. **API** → **Redis Result Backend** (결과 조회)
 
-## 🛠️ 기술 스택
+##  기술 스택
 
 - **Backend**: FastAPI, SQLAlchemy
 - **AI/ML**: Google Gemini AI (gemini-2.5-flash)
@@ -33,7 +33,7 @@ AI 기반 이력서 분석 및 맞춤형 학습 경로 생성 서비스
 - **컨테이너**: Docker, Docker Compose
 - **테스트**: pytest, pytest-asyncio
 
-## 📋 요구사항
+## 요구사항
 
 - Python 3.10+
 - Docker & Docker Compose
@@ -189,7 +189,7 @@ curl http://localhost:8000/health
 }
 ```
 
-## 🔒 보안
+## 보안
 
 - API 키는 환경 변수로 관리
 - 세션 ID를 통한 요청 추적
@@ -250,27 +250,3 @@ def new_task(self, *args, **kwargs):
 class Settings(BaseSettings):
     new_setting: str = Field("default_value", env="NEW_SETTING")
 ```
-
-## 🤝 기여하기
-
-1. Fork the repository
-2. Create a feature branch
-3. Commit your changes
-4. Push to the branch
-5. Create a Pull Request
-
-## 📄 라이선스
-
-이 프로젝트는 MIT 라이선스 하에 배포됩니다.
-
-## 📞 지원
-
-문제가 발생하거나 질문이 있으시면 이슈를 생성해 주세요.
-
-## 🔄 최근 업데이트
-
-- **2024-01-01**: Redis Message Queue 아키텍처로 변경
-- **2024-01-01**: 테스트 코드 완성 및 README 업데이트
-- **2024-01-01**: API 메트릭스 로깅 시스템 구현
-- **2024-01-01**: Gemini AI 서비스 통합 완료
-
