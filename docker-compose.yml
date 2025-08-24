@@ -39,6 +39,26 @@ services:
     networks:
       - jobkorea_network
 
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: jobkorea_rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: jobkorea
+      RABBITMQ_DEFAULT_PASS: jobkorea_rabbit
+      RABBITMQ_DEFAULT_VHOST: jobkorea_vhost
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    networks:
+      - jobkorea_network
+
   # FastAPI 애플리케이션
   fastapi_app:
     build:
