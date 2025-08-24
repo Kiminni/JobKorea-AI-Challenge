@@ -84,6 +84,8 @@ docker-compose logs -f celery_worker
 
 ### 4. 서비스 상태 확인
 
+Swagger UI: http://localhost:8000/docs
+
 ```bash
 # API 서버 상태 확인
 curl http://localhost:8000/health
