@@ -1,0 +1,50 @@
+# FastAPI 및 기본 웹 프레임워크
+fastapi==0.115.14
+uvicorn[standard]==0.24.0
+gunicorn==21.2.0
+
+# 데이터베이스
+asyncpg==0.29.0
+sqlalchemy[asyncio]==2.0.23
+alembic==1.12.1
+psycopg2-binary==2.9.9
+
+# Redis 및 캐싱
+redis[hiredis]==4.6.0
+aioredis==2.0.1
+
+# Celery 비동기 작업
+celery[redis]==5.3.4
+flower==2.0.1
+
+# AI/LLM 통합
+google-genai==1.31.0
+# HTTP 클라이언트 및 네트워킹
+httpx==0.28.1
+aiohttp==3.9.1
+
+# 유효성 검사 및 설정
+pydantic==2.5.0
+pydantic-settings==2.1.0
+
+# 로깅 및 모니터링
+structlog==23.2.0
+prometheus-client==0.19.0
+
+# 보안
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+python-multipart==0.0.6
+
+# 개발 및 테스트
+pytest==7.4.3
+pytest-asyncio==0.21.1
+pytest-mock==3.12.0
+black==23.11.0
+flake8==6.1.0
+mypy==1.7.1
+
+# 유틸리티
+python-dotenv==1.0.0
+click==8.1.7
+tenacity==8.2.3

@@ -1,0 +1,163 @@
+services:
+  # PostgreSQL 데이터베이스
+  postgres:
+    image: postgres:16-alpine
+    container_name: jobkorea_postgres
+    environment:
+      POSTGRES_DB: jobkorea_ai
+      POSTGRES_USER: jobkorea
+      POSTGRES_PASSWORD: jobkorea_pass
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U jobkorea -d jobkorea_ai"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    networks:
+      - jobkorea_network
+
+  # Redis (캐시, 세션, Celery 브로커)
+  redis:
+    image: redis:7-alpine
+    container_name: jobkorea_redis
+    command: redis-server --appendonly yes --maxmemory 512mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis_data:/data
+      - ./redis/redis.conf:/usr/local/etc/redis/redis.conf
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    networks:
+      - jobkorea_network
+
+  # FastAPI 애플리케이션
+  fastapi_app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: jobkorea_fastapi
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://jobkorea:jobkorea_pass@postgres:5432/jobkorea_ai
+      - REDIS_URL=redis://redis:6379/0
+      - RABBITMQ_URL=amqp://jobkorea:jobkorea_rabbit@rabbitmq:5672/jobkorea_vhost
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - LOG_LEVEL=INFO
+      - WORKERS=1
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+      - CELERY_TASK_SERIALIZER=json
+      - CELERY_RESULT_SERIALIZER=json
+      - CELERY_ACCEPT_CONTENT=["json"]
+      - CELERY_TIMEZONE=Asia/Seoul
+      - CELERY_ENABLE_UTC=true
+      - CELERY_TASK_TRACK_STARTED=true
+      - CELERY_TASK_TIME_LIMIT=300
+      - CELERY_TASK_SOFT_TIME_LIMIT=240
+      - CELERY_WORKER_PREFETCH_MULTIPLIER=1
+      - CELERY_TASK_ACKS_LATE=true
+      - CELERY_WORKER_MAX_TASKS_PER_CHILD=1000
+    volumes:
+      - .:/code
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    networks:
+      - jobkorea_network
+
+  # Celery Worker
+  celery_worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: jobkorea_celery_worker
+    command: celery -A app.workers.celery_app worker --loglevel=info --concurrency=4 --queues=resume_processing,default
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://jobkorea:jobkorea_pass@postgres:5432/jobkorea_ai
+      - REDIS_URL=redis://redis:6379/0
+      - RABBITMQ_URL=amqp://jobkorea:jobkorea_rabbit@rabbitmq:5672/jobkorea_vhost
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - LOG_LEVEL=INFO
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+      - CELERY_TASK_SERIALIZER=json
+      - CELERY_RESULT_SERIALIZER=json
+      - CELERY_ACCEPT_CONTENT=["json"]
+      - CELERY_TIMEZONE=Asia/Seoul
+      - CELERY_ENABLE_UTC=true
+      - CELERY_TASK_TRACK_STARTED=true
+      - CELERY_TASK_TIME_LIMIT=300
+      - CELERY_TASK_SOFT_TIME_LIMIT=240
+      - CELERY_WORKER_PREFETCH_MULTIPLIER=1
+      - CELERY_TASK_ACKS_LATE=true
+      - CELERY_WORKER_MAX_TASKS_PER_CHILD=1000
+    volumes:
+      - .:/code
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - jobkorea_network
+
+  # Celery Flower (모니터링)
+  celery_flower:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: jobkorea_celery_flower
+    command: celery -A app.workers.celery_app flower --port=5555
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+    volumes:
+      - .:/code
+    ports:
+      - "5555:5555"
+    depends_on:
+      - celery_worker
+    networks:
+      - jobkorea_network
+
+  # Nginx 리버스 프록시
+  nginx:
+    image: nginx:alpine
+    container_name: jobkorea_nginx
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+    ports:
+      - "80:80"
+    depends_on:
+      fastapi_app:
+        condition: service_healthy
+    networks:
+      - jobkorea_network
+
+volumes:
+  postgres_data:
+  redis_data:
+  rabbitmq_data:
+
+networks:
+  jobkorea_network:
+    driver: bridge
