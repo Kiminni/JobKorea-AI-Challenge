@@ -20,6 +20,7 @@ services:
       retries: 5
     networks:
       - jobkorea_network
+    restart: unless-stopped
 
   # Redis (캐시, 세션, Celery 브로커)
   redis:
@@ -58,6 +59,7 @@ services:
       retries: 5
     networks:
       - jobkorea_network
+    restart: unless-stopped
 
   # FastAPI 애플리케이션
   fastapi_app:
@@ -103,6 +105,7 @@ services:
       retries: 5
     networks:
       - jobkorea_network
+    restart: unless-stopped
 
   # Celery Worker
   celery_worker:
@@ -158,6 +161,7 @@ services:
       - celery_worker
     networks:
       - jobkorea_network
+    restart: unless-stopped
 
   # Nginx 리버스 프록시
   nginx:
@@ -172,6 +176,7 @@ services:
         condition: service_healthy
     networks:
       - jobkorea_network
+    restart: unless-stopped
 
 volumes:
   postgres_data:
